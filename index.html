@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>VetoBet: Only bet when the price is right</title>
+<meta name="description" content="VetoBet compares licensed sportsbooks, removes each book's cut to find the fair price, and shows where a price is better than it should be. Free to start.">
+<meta property="og:title" content="VetoBet: Only bet when the price is right">
+<meta property="og:description" content="Compare licensed sportsbooks, see the fair price, and check a slip before you place it.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="og-banner.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="og-banner.png">
+<meta name="theme-color" content="#F6F7F9">
+<link rel="icon" type="image/svg+xml" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<script>
+  // Same theme choice as the app: light unless the visitor picked dark there.
+  try { if (localStorage.getItem('vetobet_theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (e) {}
+</script>
+<style>
+/* Landing page. Same tokens as the app's pro dashboard layer. */
+:root {
+  --bg: #F6F7F9; --surface: #FFFFFF; --surface-2: #F2F4F7; --ink: #101828; --ink-2: #344054;
+  --muted: #475467; --subtle: #667085; --line: #E4E7EC; --line-bright: #D0D5DD;
+  --accent: #1D4ED8; --accent-hover: #1E40AF; --accent-ink: #FFFFFF; --accent-soft: #EFF4FF;
+  --highlight: #DBE7FF;
+  --pos: #067647; --pos-soft: #ECFDF3; --bad: #B42318; --bad-soft: #FEF3F2;
+  --warn: #B54708; --warn-soft: #FFFAEB;
+  --band: #0B1220; --band-ink: #E6EBF5; --band-muted: #A3ADC2; --band-line: #24304A; --band-surface: #111A2E;
+  --shadow: 0 24px 48px -24px rgba(16, 24, 40, 0.25);
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #0B1220; --surface: #111A2E; --surface-2: #18233B; --ink: #E6EBF5; --ink-2: #C9D1E0;
+  --muted: #A3ADC2; --subtle: #8C97AD; --line: #24304A; --line-bright: #33415F;
+  --accent: #7AA2FF; --accent-hover: #9BB8FF; --accent-ink: #0B1220; --accent-soft: rgba(122,162,255,.14);
+  --highlight: rgba(122,162,255,.28);
+  --pos: #4ADE94; --pos-soft: rgba(74,222,148,.13); --bad: #FF8A80; --bad-soft: rgba(255,138,128,.13);
+  --warn: #FDB022; --warn-soft: rgba(253,176,34,.12);
+  --band: #060B15; --band-surface: #0E1626;
+  --shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.7);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .ticker-track { animation: none !important; } }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+a { color: var(--accent); }
+a:hover { color: var(--accent-hover); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.container { max-width: 1200px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left)); padding-right: max(20px, env(safe-area-inset-right)); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1, h2, h3 { letter-spacing: -0.025em; line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-size: clamp(30px, 4vw, 44px); font-weight: 800; }
+h3 { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+p { margin: 0; }
+.lead { color: var(--muted); font-size: 18px; max-width: 60ch; }
+section { padding: 96px 0; }
+.section-head { display: flex; flex-direction: column; gap: 14px; margin-bottom: 44px; max-width: 720px; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 22px; border-radius: 10px; font: 600 15px var(--font); text-decoration: none; border: 1px solid transparent; cursor: pointer; transition: background .15s, border-color .15s; }
+.btn-primary { background: var(--accent); color: var(--accent-ink); }
+.btn-primary:hover { background: var(--accent-hover); color: var(--accent-ink); }
+.btn-ghost { background: var(--surface); color: var(--ink-2); border-color: var(--line-bright); }
+.btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+.btn-sm { min-height: 40px; padding: 0 16px; font-size: 14px; border-radius: 8px; }
+
+/* Nav */
+.nav { position: sticky; top: 0; z-index: 50; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 68px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; color: var(--ink); text-decoration: none; letter-spacing: -0.02em; }
+.brand-mark { width: 30px; height: 30px; border-radius: 8px; background: var(--accent); color: var(--accent-ink); display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; }
+.nav-links { display: flex; gap: 4px; }
+.nav-links a { color: var(--ink-2); text-decoration: none; font-size: 14px; font-weight: 500; padding: 8px 12px; border-radius: 8px; }
+.nav-links a:hover { background: var(--surface-2); color: var(--ink); }
+.nav-cta { display: flex; gap: 8px; align-items: center; }
+@media (max-width: 900px) { .nav-links { display: none; } }
+@media (max-width: 420px) { .nav-cta .btn-ghost { display: none; } }
+
+/* Hero */
+.hero { padding: 72px 0 56px; }
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 56px; align-items: center; }
+@media (max-width: 960px) { .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 40px; } }
+.chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 8px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 13px; font-weight: 500; color: var(--ink-2); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--pos); box-shadow: 0 0 0 4px var(--pos-soft); }
+.hero h1 { font-size: clamp(44px, 7vw, 80px); font-weight: 800; letter-spacing: -0.04em; line-height: 1.02; margin: 22px 0 22px; }
+.hl { background: linear-gradient(transparent 58%, var(--highlight) 58%, var(--highlight) 92%, transparent 92%); padding: 0 .06em; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+.trust { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 22px; color: var(--muted); font-size: 14px; list-style: none; padding: 0; }
+.trust li { display: inline-flex; align-items: center; gap: 8px; }
+.trust svg { color: var(--pos); flex: none; }
+
+/* Live gap card */
+.gap-card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 22px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 18px; }
+.gap-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--subtle); }
+.live-tag { display: inline-flex; align-items: center; gap: 6px; color: var(--pos); }
+.live-tag.sample { color: var(--warn); }
+.live-tag.sample .dot { background: var(--warn); box-shadow: 0 0 0 4px var(--warn-soft); }
+.gap-game { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.gap-game b { display: block; font-size: 20px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.25; }
+.gap-game span { color: var(--subtle); font-size: 14px; }
+.pill { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font: 600 14px var(--mono); white-space: nowrap; }
+.pill.pos { background: var(--pos-soft); color: var(--pos); }
+.pill.neg { background: var(--bad-soft); color: var(--bad); }
+.pill.flat { background: var(--surface-2); color: var(--ink-2); }
+.gap-nums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.gap-nums div { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.gap-nums div.best { border-color: var(--accent); background: var(--accent-soft); }
+.gap-nums span { font-size: 12px; color: var(--muted); font-weight: 500; }
+.gap-nums b { font: 600 22px var(--mono); letter-spacing: -0.02em; }
+.gap-verdict { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--warn-soft); color: var(--ink-2); font-size: 14px; line-height: 1.5; }
+.gap-verdict b { color: var(--warn); }
+.gap-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; color: var(--subtle); font-size: 13px; }
+
+/* Ticker */
+.ticker { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--surface); overflow: hidden; }
+.ticker-track { display: flex; gap: 40px; width: max-content; padding: 14px 0; animation: scroll 60s linear infinite; }
+.ticker:hover .ticker-track { animation-play-state: paused; }
+.ticker-item { display: inline-flex; align-items: center; gap: 10px; white-space: nowrap; font-size: 14px; color: var(--ink-2); }
+.ticker-item b { font-weight: 600; color: var(--ink); }
+@keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* Dark band: today's gaps */
+.band { background: var(--band); color: var(--band-ink); }
+.band .eyebrow { color: #7AA2FF; }
+.band .lead { color: var(--band-muted); }
+.band h2 { color: #FFFFFF; }
+.board { background: var(--band-surface); border: 1px solid var(--band-line); border-radius: 16px; overflow: hidden; }
+.board-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.2fr) 110px 110px 96px; gap: 14px; align-items: center; padding: 16px 22px; border-top: 1px solid var(--band-line); }
+.board-row:first-child { border-top: 0; }
+.board-head { font-size: 12px; font-weight: 600; color: var(--band-muted); background: rgba(255,255,255,.02); }
+.board-row .game b { display: block; color: #FFFFFF; font-weight: 600; }
+.board-row .game span, .board-row .when { color: var(--band-muted); font-size: 13px; }
+.board-row .num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.board-row .num small { display: block; font-family: var(--font); color: var(--band-muted); font-size: 12px; }
+.band .pill.pos { background: rgba(74,222,148,.14); color: #4ADE94; }
+.band .pill.neg { background: rgba(255,138,128,.14); color: #FF8A80; }
+.band .pill.flat { background: rgba(255,255,255,.06); color: var(--band-ink); }
+.board-foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 22px; color: var(--band-muted); font-size: 14px; }
+@media (max-width: 760px) {
+  .board-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .board-row .pick, .board-row .num.fair, .board-head { display: none; }
+}
+
+/* Steps */
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+@media (max-width: 860px) { .steps { grid-template-columns: minmax(0, 1fr); } }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 26px; display: flex; flex-direction: column; gap: 12px; }
+.step-num { width: 36px; height: 36px; border-radius: 10px; background: var(--accent-soft); color: var(--accent); font: 700 15px var(--mono); display: inline-flex; align-items: center; justify-content: center; }
+.step p { color: var(--muted); }
+.worked { margin-top: 20px; background: var(--surface); border: 1px dashed var(--line-bright); border-radius: 16px; padding: 20px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 14px 28px; font-size: 15px; }
+.worked .eq { color: var(--subtle); }
+.worked b { font: 600 20px var(--mono); }
+
+/* Split sections */
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: center; }
+@media (max-width: 900px) { .split { grid-template-columns: minmax(0, 1fr); gap: 36px; } }
+.check-list { list-style: none; padding: 0; margin: 24px 0 0; display: flex; flex-direction: column; gap: 12px; }
+.check-list li { display: flex; gap: 12px; color: var(--ink-2); }
+.check-list svg { flex: none; margin-top: 3px; color: var(--pos); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 22px; box-shadow: var(--shadow); }
+.slip-leg { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.slip-leg:first-of-type { border-top: 0; }
+.slip-leg span { color: var(--subtle); font-size: 12px; display: block; }
+.verdict { margin-top: 14px; padding: 14px 16px; border-radius: 12px; background: var(--bad-soft); color: var(--bad); font-weight: 600; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.example-tag { font-size: 12px; font-weight: 600; color: var(--warn); background: var(--warn-soft); padding: 3px 9px; border-radius: 999px; }
+
+/* Record */
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 860px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 6px; }
+.stat span { color: var(--muted); font-size: 14px; }
+.stat b { font: 600 32px var(--mono); letter-spacing: -0.03em; }
+.stat small { color: var(--subtle); font-size: 13px; }
+
+/* Features */
+.features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+@media (max-width: 900px) { .features { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .features { grid-template-columns: minmax(0, 1fr); } }
+.feature { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 10px; }
+.feature-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--accent-soft); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; }
+.feature p { color: var(--muted); font-size: 15px; }
+
+/* Coverage */
+.coverage { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 900px) { .coverage { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.sport { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 4px; }
+.sport b { font-size: 16px; }
+.sport span { color: var(--subtle); font-size: 14px; }
+
+/* Pricing */
+.plans { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: stretch; }
+@media (max-width: 900px) { .plans { grid-template-columns: minmax(0, 1fr); max-width: 520px; } }
+.plan { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 28px; display: flex; flex-direction: column; gap: 16px; }
+.plan.featured { border: 2px solid var(--accent); padding: 27px; box-shadow: var(--shadow); }
+.plan-top { display: flex; justify-content: space-between; align-items: center; }
+.plan-tag { font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 4px 10px; border-radius: 999px; }
+.price { display: flex; align-items: baseline; gap: 6px; }
+.price b { font-size: 44px; font-weight: 800; letter-spacing: -0.03em; }
+.price span { color: var(--subtle); }
+.plan ul { list-style: none; padding: 16px 0 0; margin: 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.plan li { display: flex; gap: 10px; color: var(--ink-2); font-size: 15px; }
+.plan li svg { flex: none; margin-top: 4px; color: var(--pos); }
+
+/* Promise */
+.promises { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 760px) { .promises { grid-template-columns: minmax(0, 1fr); } }
+.promise { display: flex; gap: 14px; padding: 20px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+.promise svg { flex: none; color: var(--bad); margin-top: 2px; }
+.promise b { display: block; margin-bottom: 4px; }
+.promise p { color: var(--muted); font-size: 15px; }
+
+/* FAQ */
+.faq { max-width: 820px; display: flex; flex-direction: column; gap: 10px; }
+.faq details { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 0 20px; }
+.faq summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 16px; align-items: center; min-height: 60px; font-weight: 600; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; font: 400 22px var(--font); color: var(--subtle); }
+.faq details[open] summary::after { content: "\2212"; }
+.faq details p { color: var(--muted); padding-bottom: 18px; }
+
+/* CTA + footer */
+.cta { text-align: center; }
+.cta-box { background: var(--band); color: #FFFFFF; border-radius: 24px; padding: 64px 28px; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.cta-box p { color: var(--band-muted); max-width: 56ch; }
+.cta-box .btn-ghost { background: transparent; color: #FFFFFF; border-color: rgba(255,255,255,.25); }
+footer { border-top: 1px solid var(--line); padding: 40px 0 56px; color: var(--subtle); font-size: 14px; }
+.foot { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.foot-links { display: flex; gap: 18px; flex-wrap: wrap; }
+.foot-links a { color: var(--ink-2); text-decoration: none; }
+.rg { margin-top: 24px; max-width: 820px; line-height: 1.6; }
+
+/* Artwork, motion and demo */
+.hero { overflow-x: clip; }
+.hero-visual { position: relative; }
+.hero-scene { position: absolute; left: -48px; right: -48px; top: -56px; bottom: -56px; width: calc(100% + 96px); height: calc(100% + 112px); z-index: 0; pointer-events: none; }
+.hero-scene .pitch { fill: none; stroke: var(--line-bright); stroke-width: 1.5; opacity: .75; }
+.hero-scene .glow-a { fill: var(--accent); opacity: .10; }
+.hero-scene .glow-b { fill: var(--pos); opacity: .08; }
+.hero-scene .path { fill: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 2 8; stroke-linecap: round; opacity: .6; }
+.hero-scene .orb { fill: var(--accent); }
+.hero-scene .orb-ring { fill: none; stroke: var(--accent); opacity: .35; }
+.hero-visual .gap-card { position: relative; z-index: 1; }
+.float-chip { position: absolute; z-index: 2; display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 10px 24px -12px rgba(16, 24, 40, .35); font-size: 13px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
+.float-chip .dot { width: 8px; height: 8px; }
+.float-chip.c1 { top: -18px; right: -6px; animation: floaty 7s ease-in-out infinite; }
+.float-chip.c2 { bottom: 74px; left: -26px; animation: floaty 8s ease-in-out -2s infinite; }
+.float-chip.c3 { bottom: -22px; right: 34px; animation: floaty 9s ease-in-out -4s infinite; }
+.float-chip.c2 .dot { background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.float-chip.c3 .dot { background: var(--warn); box-shadow: 0 0 0 4px var(--warn-soft); }
+@keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.hero-visual .gap-card { animation: cardfloat 8s ease-in-out infinite; }
+@keyframes cardfloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@media (max-width: 520px) { .float-chip.c2 { left: -8px; } .float-chip.c1 { right: 0; } .hero-scene { left: -20px; right: -20px; width: calc(100% + 40px); } }
+
+.numbers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; padding: 44px 0 0; }
+.numbers > div { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
+.numbers b { font: 600 clamp(32px, 5vw, 48px) var(--mono); letter-spacing: -0.04em; color: var(--ink); }
+.numbers span { color: var(--muted); font-size: 14px; }
+
+.step-art { height: 112px; border-radius: 12px; background: var(--surface-2); display: flex; align-items: center; justify-content: center; margin-bottom: 4px; overflow: hidden; }
+.step-art svg { width: 100%; height: 100%; }
+.step-art .s-surf { fill: var(--surface); stroke: var(--line-bright); stroke-width: 1.5; }
+.step-art .s-bar { fill: var(--line-bright); }
+.step-art .s-acc { fill: var(--accent); }
+.step-art .s-soft { fill: var(--accent-soft); }
+.step-art .s-pos { fill: var(--pos); }
+.step-art .s-neg { fill: var(--bad); }
+.step-art .s-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 3 5; }
+.step-art .s-text { font: 600 12px var(--mono); fill: var(--ink-2); }
+.step, .feature, .plan:not(.featured), .stat, .sport, .promise { transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
+.step:hover, .feature:hover, .plan:not(.featured):hover, .stat:hover, .sport:hover, .promise:hover { transform: translateY(-3px); border-color: var(--line-bright); box-shadow: 0 16px 32px -20px rgba(16, 24, 40, .35); }
+
+.js .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease var(--d, 0s), transform .6s ease var(--d, 0s); }
+.js .reveal.in { opacity: 1; transform: none; }
+.js .reveal.in.step:hover, .js .reveal.in.feature:hover { transform: translateY(-3px); }
+
+.demo { margin-top: 20px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 24px; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 24px 40px; align-items: center; }
+@media (max-width: 760px) { .demo { grid-template-columns: minmax(0, 1fr); } }
+.demo-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; grid-column: 1 / -1; }
+.demo-top b { font-size: 17px; letter-spacing: -0.01em; }
+.demo label { font-size: 13px; font-weight: 600; color: var(--muted); display: flex; justify-content: space-between; margin-bottom: 10px; }
+.demo input[type="range"] { width: 100%; height: 36px; accent-color: var(--accent); cursor: pointer; }
+.demo-ends { display: flex; justify-content: space-between; color: var(--subtle); font: 12px var(--mono); }
+.demo-read { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.demo-read div { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.demo-read span { font-size: 12px; color: var(--muted); }
+.demo-read b { font: 600 20px var(--mono); letter-spacing: -0.02em; }
+.demo-note { grid-column: 1 / -1; color: var(--muted); padding: 12px 16px; border-radius: 10px; background: var(--surface-2); font-size: 15px; }
+.demo-note.good { background: var(--pos-soft); color: var(--pos); }
+.demo-note.bad { background: var(--bad-soft); color: var(--bad); }
+@media (prefers-reduced-motion: reduce) { .float-chip, .hero-visual .gap-card { animation: none !important; } .js .reveal { opacity: 1; transform: none; transition: none; } }
+</style>
+</head>
+<body>
+<div style="background:#b45309;color:#fff;font:600 13px/1.4 system-ui,sans-serif;padding:8px 14px;text-align:center">Preview only. VetoBet is not live yet. Buttons that need the app or live data will not work.</div>
+
+<header class="nav">
+  <div class="container nav-inner">
+    <a class="brand" href="./" aria-label="VetoBet home"><span class="brand-mark" aria-hidden="true">V</span>VetoBet</a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#teaser">Watch trailer (40s)</a>
+      <a href="#how">How it works</a>
+      <a href="#today">Today's games</a>
+      <a href="#record">Public record</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="nav-cta" id="landing-nav-cta">
+      <button type="button" class="btn btn-ghost btn-sm" onclick="openLandingAuth('login')">Sign In</button>
+      <button type="button" class="btn btn-primary btn-sm" onclick="openLandingAuth('register')">Sign Up Free</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <span class="chip"><span class="dot" aria-hidden="true"></span><span id="hero-chip">Prices compared across licensed US sportsbooks</span></span>
+        <h1>Only bet when <span class="hl">the price is right.</span></h1>
+        <p class="lead">VetoBet compares the same bet across licensed sportsbooks, removes each book's cut to find the fair price, and shows you when a price is better than it should be. And when it isn't.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#">See today's games
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a class="btn btn-ghost" href="#teaser" onclick="playTeaserVideo()">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block; vertical-align:-2px; margin-right:4px;"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Watch 40s teaser
+          </a>
+          <a class="btn btn-ghost" href="/app#doctor">Check a slip</a>
+        </div>
+        <ul class="trust">
+          <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Free to start</li>
+          <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>No card needed</li>
+          <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>We never take bets or hold your money</li>
+        </ul>
+      </div>
+
+      <div class="hero-visual">
+        <svg class="hero-scene" viewBox="0 0 640 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+          <circle class="glow-a" cx="470" cy="150" r="190"/>
+          <circle class="glow-b" cx="120" cy="470" r="160"/>
+          <rect class="pitch" x="40" y="40" width="560" height="520" rx="36"/>
+          <path class="pitch" d="M40 300h560"/>
+          <circle class="pitch" cx="320" cy="300" r="82"/>
+          <circle class="pitch" cx="320" cy="300" r="4"/>
+          <path class="pitch" d="M200 40a120 120 0 0 0 240 0M200 560a120 120 0 0 1 240 0"/>
+          <path class="path" d="M70 520C170 470 230 350 320 330S500 190 574 92"/>
+          <circle class="orb-ring" cx="574" cy="92" r="16"/>
+          <circle class="orb" cx="574" cy="92" r="6"/>
+          <circle class="orb" cx="70" cy="520" r="5" opacity=".5"/>
+        </svg>
+        <aside class="gap-card" aria-labelledby="gap-title" aria-live="polite">
+        <div class="gap-top">
+          <span id="gap-title">Biggest price gap right now</span>
+          <span class="live-tag" id="gap-live"><span class="dot" aria-hidden="true"></span><span id="gap-live-text">Live</span></span>
+        </div>
+        <div class="gap-game">
+          <div>
+            <b id="gap-pick">Loading today's prices</b>
+            <span id="gap-match">&nbsp;</span>
+          </div>
+          <span class="pill flat" id="gap-pill">&mdash;</span>
+        </div>
+        <div class="gap-nums">
+          <div class="best"><span>Best price</span><b id="gap-best">&mdash;</b><span id="gap-book">&nbsp;</span></div>
+          <div><span>Fair price</span><b id="gap-fair">&mdash;</b><span>cut removed</span></div>
+          <div><span>Fair chance</span><b id="gap-chance">&mdash;</b><span>to win</span></div>
+        </div>
+        <p class="gap-verdict" id="gap-verdict" style="display: none;"></p>
+        <div class="gap-foot">
+          <span id="gap-source">&nbsp;</span>
+          <a href="#" style="font-weight: 600; text-decoration: none;">All of today's games &rarr;</a>
+        </div>
+      </aside>
+        <div class="float-chip c1"><span class="dot" aria-hidden="true"></span>Licensed books only</div>
+        <div class="float-chip c2"><span class="dot" aria-hidden="true"></span>Each book's cut removed</div>
+        <div class="float-chip c3"><span class="dot" aria-hidden="true"></span>Prices checked daily</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ticker of today's games -->
+  <div class="ticker" aria-label="Today's games and price gaps">
+    <div class="ticker-track" id="ticker"></div>
+  </div>
+
+  <div class="container numbers" aria-label="Today in numbers">
+    <div><b data-count id="n-games">&mdash;</b><span>games priced</span></div>
+    <div><b data-count id="n-books">&mdash;</b><span>sportsbooks compared</span></div>
+    <div><b data-count id="n-leagues">&mdash;</b><span>leagues covered</span></div>
+  </div>
+
+  <!-- Teaser Video Trailer Section -->
+  <section id="teaser" style="padding: 56px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--surface);">
+    <div class="container" style="max-width: 960px; text-align: center;">
+      <span class="eyebrow" style="color: var(--accent); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; font-size: 12px;">A 70-second look</span>
+      <h2 style="margin: 8px 0 12px; font-size: 32px; letter-spacing: -0.02em;">See how VetoBet works</h2>
+      <p class="lead" style="max-width: 620px; margin: 0 auto 28px; color: var(--muted); font-size: 16px;">
+        A walkthrough of the real app: compare prices, check a slip, log your bets. The games shown are sample data, and the app says so.
+      </p>
+
+      <div style="position: relative; border-radius: 16px; overflow: hidden; border: 1px solid var(--line-bright); box-shadow: 0 24px 70px rgba(0,0,0,0.35); background: #000;">
+        <video id="landing-teaser-player" controls preload="metadata" playsinline poster="static/demo/walkthrough_poster.png" style="width: 100%; height: auto; display: block; aspect-ratio: 16/9; max-height: 520px;" src="static/demo/vetobet_walkthrough.mp4">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+
+      <div style="display: flex; justify-content: center; gap: 14px; margin-top: 24px; flex-wrap: wrap; align-items: center;">
+        <a class="btn btn-primary" href="#" style="min-height: 44px; padding: 0 24px;">See today's games &rarr;</a>
+        <a class="btn btn-ghost" href="/app#doctor" style="min-height: 44px; padding: 0 20px;">Check a slip &rarr;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section id="how">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">How it works</span>
+        <h2>Three steps. One honest number.</h2>
+        <p class="lead">Every sportsbook price hides a fee. Take the fee out and compare books, and the good prices stand out.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-art" aria-hidden="true"><svg viewBox="0 0 240 112" preserveAspectRatio="xMidYMid meet">
+            <rect class="s-surf" x="22" y="22" width="60" height="68" rx="9"/><rect class="s-surf" x="90" y="22" width="60" height="68" rx="9"/><rect class="s-soft" x="158" y="22" width="60" height="68" rx="9"/><rect class="s-surf" x="158" y="22" width="60" height="68" rx="9" style="stroke: var(--accent)"/>
+            <rect class="s-bar" x="32" y="34" width="28" height="6" rx="3"/><text class="s-text" x="32" y="66">+398</text><rect class="s-bar" x="32" y="76" width="40" height="5" rx="2.5"/>
+            <rect class="s-bar" x="100" y="34" width="28" height="6" rx="3"/><text class="s-text" x="100" y="66">+405</text><rect class="s-bar" x="100" y="76" width="40" height="5" rx="2.5"/>
+            <rect class="s-acc" x="168" y="34" width="28" height="6" rx="3"/><text class="s-text" x="168" y="66" style="fill: var(--accent)">+410</text><rect class="s-acc" x="168" y="76" width="40" height="5" rx="2.5" opacity=".6"/>
+          </svg></div>
+          <span class="step-num" aria-hidden="true">1</span>
+          <h3>Compare licensed sportsbooks</h3>
+          <p>We collect the price of the same bet from FanDuel, DraftKings, BetMGM, Caesars, BetRivers and more.</p>
+        </div>
+        <div class="step">
+          <div class="step-art" aria-hidden="true"><svg viewBox="0 0 240 112" preserveAspectRatio="xMidYMid meet">
+            <rect class="s-surf" x="28" y="30" width="184" height="26" rx="8"/><rect class="s-acc" x="28" y="30" width="146" height="26" rx="8"/><rect class="s-neg" x="174" y="30" width="38" height="26" rx="0" style="clip-path: inset(0 0 0 0 round 0 8px 8px 0)" opacity=".85"/>
+            <text class="s-text" x="36" y="47" style="fill: #fff">fair chance</text><text class="s-text" x="181" y="47" style="fill: #fff">cut</text>
+            <path class="s-line" d="M174 22v44"/>
+            <rect class="s-surf" x="28" y="72" width="184" height="26" rx="8"/><rect class="s-pos" x="28" y="72" width="146" height="26" rx="8" opacity=".9"/>
+            <text class="s-text" x="36" y="89" style="fill: #fff">fair price</text>
+          </svg></div>
+          <span class="step-num" aria-hidden="true">2</span>
+          <h3>Remove the cut</h3>
+          <p>Each book adds its fee to every price. We strip it out and average the books to get a fair price for the bet.</p>
+        </div>
+        <div class="step">
+          <div class="step-art" aria-hidden="true"><svg viewBox="0 0 240 112" preserveAspectRatio="xMidYMid meet">
+            <path d="M24 92h192" stroke="var(--line-bright)" stroke-width="1.5" stroke-linecap="round"/>
+            <rect class="s-bar" x="50" y="52" width="40" height="40" rx="6"/><rect class="s-pos" x="130" y="34" width="40" height="58" rx="6"/>
+            <text class="s-text" x="70" y="46" text-anchor="middle">fair</text><text class="s-text" x="150" y="28" text-anchor="middle" style="fill: var(--pos)">best</text>
+            <path d="M104 44l12-10M104 44l12-10" stroke="none"/><rect class="s-soft" x="176" y="26" width="42" height="24" rx="12"/><text class="s-text" x="197" y="43" text-anchor="middle" style="fill: var(--pos)">+3.4%</text>
+          </svg></div>
+          <span class="step-num" aria-hidden="true">3</span>
+          <h3>See the gap</h3>
+          <p>When a book pays more than the fair price, you see it in green. When it pays less, you see that in red.</p>
+        </div>
+      </div>
+      <div class="demo" aria-label="Try it yourself">
+        <div class="demo-top"><span class="example-tag">Try it</span><b>Slide the book's price and watch the gap change.</b></div>
+        <div>
+          <label for="demo-range"><span>The book's price</span><span class="mono" id="demo-price" style="color: var(--ink); font-size: 16px;">+410</span></label>
+          <input type="range" id="demo-range" min="300" max="480" step="1" value="410" aria-describedby="demo-note">
+          <div class="demo-ends"><span>+300</span><span>+480</span></div>
+        </div>
+        <div class="demo-read" aria-live="polite">
+          <div><span>Fair price</span><b>+393</b></div>
+          <div><span>Fair chance</span><b>20%</b></div>
+          <div><span>Gap</span><b id="demo-gap">+3.4%</b></div>
+        </div>
+        <p class="demo-note good" id="demo-note">This book pays more than the bet is worth.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Today's games (dark band) -->
+  <section class="band" id="today">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">Today's games</span>
+        <h2>Priced honestly, gaps both ways.</h2>
+        <p class="lead">The biggest price gaps across today's games. Most bets are priced close to fair, so a real gap is rare, and we show the ones that aren't worth taking too.</p>
+      </div>
+      <div class="board" role="table" aria-label="Today's biggest price gaps">
+        <div class="board-row board-head" role="row">
+          <span role="columnheader">Game</span><span role="columnheader">Bet</span>
+          <span role="columnheader" class="num">Best price</span><span role="columnheader" class="num fair">Fair price</span><span role="columnheader" class="num">Gap</span>
+        </div>
+        <div id="board-rows"><div class="board-row" role="row"><span class="when">Loading today's prices</span></div></div>
+      </div>
+      <div class="board-foot">
+        <span id="board-note">&nbsp;</span>
+        <a class="btn btn-primary btn-sm" href="#">Open today's games</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slip check -->
+  <section>
+    <div class="container split">
+      <div>
+        <span class="eyebrow">Slip check</span>
+        <h2 style="margin-top: 14px;">Check a parlay before you place it.</h2>
+        <p class="lead" style="margin-top: 16px;">Paste a ticket, drop a screenshot or build it leg by leg. VetoBet prices every leg and tells you which one is costing you money.</p>
+        <ul class="check-list">
+          <li><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>The true price of the whole slip, with the cut removed</li>
+          <li><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>The leg dragging your slip down, named</li>
+          <li><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>A plain-English verdict: place it, change it, or skip it</li>
+        </ul>
+        <a class="btn btn-primary" href="/app#doctor" style="margin-top: 28px;">Check a slip free</a>
+      </div>
+      <div class="panel" aria-label="Example slip check">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <b>Your slip</b><span class="example-tag">Example</span>
+        </div>
+        <div class="slip-leg"><div>Kansas City Chiefs +2.5<span>NFL</span></div><span class="mono">-108</span><span class="pill pos">+5.9%</span></div>
+        <div class="slip-leg"><div>Kelce over 62.5 receiving yards<span>NFL</span></div><span class="mono">-112</span><span class="pill pos">+6.0%</span></div>
+        <div class="slip-leg"><div>Allen over 2.5 passing TDs<span>NFL</span></div><span class="mono">-145</span><span class="pill neg">-25.6%</span></div>
+        <div class="slip-leg"><div>Over 48.5 total points<span>NFL</span></div><span class="mono">-110</span><span class="pill flat">+1.2%</span></div>
+        <div class="verdict"><span>Don't place this slip as it is</span><span class="mono">-15.5%</span></div>
+        <p style="margin-top: 12px; color: var(--muted); font-size: 14px;">The Allen leg is priced well below fair. Drop it and the rest of the slip is worth taking.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Public record -->
+  <section id="record" style="padding-top: 0;">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">Proof, not promises</span>
+        <h2>A record nobody can quietly edit.</h2>
+        <p class="lead">Every price gap we show is saved before kickoff, each entry locked to the one before it. After the game we grade it against the market's closing price. Wins and misses both stay. This is the part no one can copy by writing code, because it is made of time.</p>
+      </div>
+      <div class="stats">
+        <div class="stat"><span>Price gaps saved</span><b id="rec-total">&mdash;</b><small>before kickoff</small></div>
+        <div class="stat"><span>Graded after the game</span><b id="rec-settled">&mdash;</b><small>against the closing price</small></div>
+        <div class="stat"><span>Beat the closing price</span><b id="rec-clv">&mdash;</b><small id="rec-clv-note">the clearest sign of an edge</small></div>
+        <div class="stat"><span>Record integrity</span><b id="rec-chain" style="font-size: 20px; font-family: var(--font);">Checking...</b><small id="rec-chain-note">each entry locks the one before</small></div>
+      </div>
+      <div id="rec-list" class="panel" style="margin-top: 20px; padding: 6px 22px; display: none;"></div>
+      <p id="rec-note" style="margin-top: 18px; color: var(--muted);">&nbsp;</p>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section style="padding-top: 0;">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">What you get</span>
+        <h2>Tools for bettors who care about price.</h2>
+        <p class="lead">Not a tipster and not a hype channel. The math is shown, every time.</p>
+      </div>
+      <div class="features">
+        <div class="feature"><span class="feature-icon"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></span><h3>Your report card</h3><p>Track your bets and see where you leak money. We fill in the closing price for you, and nothing is graded until you have enough results.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Coverage -->
+  <section style="padding-top: 0;">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">Coverage</span>
+        <h2>The leagues people bet on most.</h2>
+      </div>
+      <div class="coverage" id="coverage">
+        <div class="sport"><b>NFL</b><span data-league="NFL">&nbsp;</span></div>
+        <div class="sport"><b>NBA</b><span data-league="NBA">&nbsp;</span></div>
+        <div class="sport"><b>NHL</b><span data-league="NHL">&nbsp;</span></div>
+        <div class="sport"><b>Premier League</b><span data-league="Premier League">&nbsp;</span></div>
+        <div class="sport"><b>Champions League</b><span data-league="Champions League">&nbsp;</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing" style="padding-top: 0;">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">Pricing</span>
+        <h2>Start free. Upgrade when it pays for itself.</h2>
+        <p class="lead">The free plan stays free. Cancel a paid plan any time.</p>
+      </div>
+      <div class="plans">
+        <div class="plan">
+          <div class="plan-top"><h3>Free</h3></div>
+          <div class="price"><b>$0</b><span>forever</span></div>
+          <button type="button" class="btn btn-ghost" onclick="openLandingAuth('register')">Start free</button>
+          <ul>
+            <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>5 slip checks a day</li>
+            <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Today's games and best prices</li>
+            <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Fair-price calculator</li>
+            <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>The public record</li>
+          </ul>
+        </div>
+        <div class="plan featured">
+          <div class="plan-top"><h3>Pro</h3><span class="plan-tag">Most popular</span></div>
+          <div class="price"><b>$29</b><span>per month</span></div>
+          <a class="btn btn-primary" href="/app#billing">Get Pro</a>
+          <ul>
+            <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Unlimited slip checks</li>
+            <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Same-game parlay pricer</li>
+            <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Price differences across books (arbitrage)</li>
+            <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Bankroll simulator</li>
+            <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Your own results tracker</li>
+          </ul>
+        </div>
+        <div class="plan">
+          <div class="plan-top"><h3>Edge</h3></div>
+          <div class="price"><b>$79</b><span>per month</span></div>
+          <a class="btn btn-ghost" href="/app#billing">Get Edge</a>
+          <ul>
+            <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Everything in Pro</li>
+            <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Price-move alerts to Discord or Telegram</li>
+            <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Experimental NBA and soccer models (preview)</li>
+            <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Developer API key</li>
+          </ul>
+        </div>
+      </div>
+      <p style="margin-top: 18px; color: var(--subtle); font-size: 14px;">Building an app or running a tipster service? <a href="/app#api">See the Developer API</a>.</p>
+    </div>
+  </section>
+
+  <!-- What we'll never do -->
+  <section style="padding-top: 0;">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">Our promise</span>
+        <h2>What we will never do.</h2>
+      </div>
+      <div class="promises">
+        <div class="promise"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg><div><b>Promise you profit</b><p>Nobody can. Good prices tilt the odds in your favour over many bets, not every bet.</p></div></div>
+        <div class="promise"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg><div><b>Show fake wins or reviews</b><p>No made-up testimonials and no edited records. If a number is an example, it says so.</p></div></div>
+        <div class="promise"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg><div><b>Send you to unlicensed books</b><p>We only point to sportsbooks licensed in the US.</p></div></div>
+        <div class="promise"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg><div><b>Take your bets or hold your money</b><p>VetoBet is information. You place bets with your own sportsbook.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" style="padding-top: 0;">
+    <div class="container">
+      <div class="section-head"><span class="eyebrow">FAQ</span><h2>Questions, answered plainly.</h2></div>
+      <div class="faq">
+        <details><summary>Is VetoBet a sportsbook?</summary><p>No. VetoBet never takes bets or holds money. It compares prices from licensed sportsbooks so you can decide where, and whether, to bet.</p></details>
+        <details><summary>What is a "fair price"?</summary><p>Every sportsbook adds a fee to its prices. We remove each book's fee and average the books, which gives the price a bet would have with no fee. If a book pays more than that, the bet is priced in your favour.</p></details>
+        <details><summary>Will this make me win?</summary><p>No tool can promise that. Taking better-than-fair prices improves your results over many bets, but any single bet can still lose. Bet only what you can afford to lose.</p></details>
+        <details><summary>How often are prices updated?</summary><p>At least once a day, and the time of the last check is always shown next to the prices.</p></details>
+        <details><summary>Which sportsbooks do you compare?</summary><p>Licensed US books such as FanDuel, DraftKings, BetMGM, Caesars and BetRivers. Other books help us work out the fair price, but we only ever point you to licensed ones.</p></details>
+        <details><summary>Can I cancel a paid plan?</summary><p>Yes, at any time, from Plan &amp; billing in the app.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta" style="padding-top: 0;">
+    <div class="container">
+      <div class="cta-box">
+        <h2 style="color: #FFFFFF;">See today's prices, honestly.</h2>
+        <p>Free to start, no card needed. Check a slip in under a minute.</p>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+          <a class="btn btn-primary" href="#">Open the app</a>
+          <a class="btn btn-ghost" href="/app#doctor">Check a slip</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="foot">
+      <a class="brand" href="./"><span class="brand-mark" aria-hidden="true">V</span>VetoBet</a>
+      <nav class="foot-links" aria-label="Footer">
+        <a href="#how">How it works</a><a href="#record">Public record</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a><a href="#">Open the app</a>
+      </nav>
+    </div>
+    <p class="rg">21+ only. VetoBet gives information, not betting advice, and never takes bets. Betting involves risk; only bet what you can afford to lose. If gambling stops being fun, take a break. Help is available 24/7 at 1-800-GAMBLER. Check the laws where you live before betting.</p>
+    <p style="margin-top: 14px;"><a href="terms.html" style="margin-right: 16px;">Terms of Use</a><a href="privacy.html" style="margin-right: 16px;">Privacy Policy</a><a href="responsible-gambling.html" style="margin-right: 16px;">Responsible gambling</a><a href="how-we-make-money.html">How we make money</a></p>
+    <p style="margin-top: 14px;">&copy; 2026 PegBit Studio</p>
+  </div>
+</footer>
+
+<script>
+window.playTeaserVideo = function() {
+  const v = document.getElementById('landing-teaser-player');
+  if (v) {
+    v.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => { v.play().catch(() => {}); }, 300);
+  }
+};
+
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const odds = (n) => (n == null || n === '') ? '—' : (Number(n) > 0 ? '+' : '') + n;
+  const gapPill = (ev) => {
+    if (ev == null) return '<span class="pill flat">—</span>';
+    const cls = ev >= 1 ? 'pos' : ev < 0 ? 'neg' : 'flat';
+    return `<span class="pill ${cls}">${ev > 0 ? '+' : ''}${Number(ev).toFixed(1)}%</span>`;
+  };
+
+  async function loadGames() {
+    let data;
+    try { data = await (await fetch('/api/matches/slate?sport=ALL')).json(); } catch (e) { return; }
+    const games = (data.matches || []).filter((m) => m.recommended_play);
+    const sample = !!data.is_sample;
+    const when = data.prices_updated_at ? new Date(data.prices_updated_at).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : '';
+
+    // Hero card: the game with the best price compared with the fair price
+    const top = [...games].sort((a, b) => b.recommended_play.ev_pct - a.recommended_play.ev_pct)[0] || data.featured_match;
+    const anyGap = top && top.recommended_play.ev_pct >= 1;
+    if (top) {
+      const r = top.recommended_play;
+      $('gap-pick').textContent = r.selection;
+      $('gap-match').textContent = `${top.away_team.name} at ${top.home_team.name} · ${top.league} · ${top.kickoff_label}`;
+      $('gap-pill').outerHTML = gapPill(r.ev_pct).replace('class="pill', 'id="gap-pill" class="pill');
+      $('gap-best').textContent = odds(r.best_odds);
+      $('gap-book').textContent = r.best_book || '';
+      $('gap-fair').textContent = odds(r.fair_odds);
+      $('gap-chance').textContent = r.p_fair ? Math.round(r.p_fair * 100) + '%' : '—';
+      $('gap-source').textContent = sample ? 'Example game' : `${top.books_compared || ''} sportsbooks${when ? ' · checked ' + when : ''}`;
+      if (!sample && !anyGap) {
+        // Most days no price beats the market. Saying so is the honest answer, and it is useful.
+        $('gap-title').textContent = 'Closest to fair price today';
+        $('gap-verdict').style.display = 'block';
+        $('gap-verdict').innerHTML = '<b>No price beats the market right now.</b> Even the best price on today\'s board costs you a little. When that is the case, the answer is simple: don\'t bet.';
+      }
+    }
+    if (sample) {
+      $('gap-live').classList.add('sample');
+      $('gap-live-text').textContent = 'Example';
+      $('gap-title').textContent = 'How a price gap looks';
+      $('hero-chip').textContent = 'Live prices are switching on soon';
+    } else {
+      $('hero-chip').textContent = anyGap
+        ? `${games.length} games priced today across licensed US sportsbooks`
+        : `${games.length} games priced today. None beat the market right now`;
+    }
+
+    // Ticker (doubled for a seamless loop)
+    const items = games.map((m) => `<span class="ticker-item"><b>${esc(m.away_team.abbr)} at ${esc(m.home_team.abbr)}</b><span>${esc(m.recommended_play.selection)}</span><span class="mono">${odds(m.recommended_play.best_odds)}</span>${gapPill(m.recommended_play.ev_pct)}</span>`).join('');
+    $('ticker').innerHTML = items + items;
+    setNumbers(games);
+
+    // Board: biggest gaps first, top 6
+    const board = [...games].sort((a, b) => b.recommended_play.ev_pct - a.recommended_play.ev_pct).slice(0, 6);
+    $('board-rows').innerHTML = board.map((m) => {
+      const r = m.recommended_play;
+      return `<div class="board-row" role="row">
+        <div class="game" role="cell"><b>${esc(m.away_team.name)} at ${esc(m.home_team.name)}</b><span>${esc(m.league)} · ${esc(m.kickoff_label)}</span></div>
+        <div class="pick" role="cell">${esc(r.selection)}</div>
+        <div class="num" role="cell">${odds(r.best_odds)}<small>${esc(r.best_book || '')}</small></div>
+        <div class="num fair" role="cell">${odds(r.fair_odds)}<small>fair</small></div>
+        <div class="num" role="cell">${gapPill(r.ev_pct)}</div>
+      </div>`;
+    }).join('') || '<div class="board-row" role="row"><span class="when">No games in the next two days.</span></div>';
+    $('board-note').textContent = sample
+      ? 'Example games. Live prices appear here once the odds feed is connected.'
+      : `${games.length} games priced${when ? ', last checked ' + when : ''}.${anyGap ? '' : ' Every best price is a little below fair today, so the honest answer is to wait.'}`;
+
+    // Coverage counts
+    const counts = {};
+    games.forEach((m) => { counts[m.league] = (counts[m.league] || 0) + 1; });
+    document.querySelectorAll('[data-league]').forEach((el) => {
+      const n = counts[el.dataset.league];
+      el.textContent = sample ? 'Covered' : (n ? `${n} game${n === 1 ? '' : 's'} today` : 'No games today');
+    });
+  }
+
+  async function loadRecord() {
+    try {
+      const [s, recent, chain] = await Promise.all([
+        fetch('/api/proof/summary').then(r => r.json()),
+        fetch('/api/proof/recent?limit=6').then(r => r.json()),
+        fetch('/api/proof/verify').then(r => r.json()),
+      ]);
+      $('rec-total').textContent = String(s.flagged);
+      $('rec-settled').textContent = String(s.graded);
+      if (s.beat_close_pct != null) {
+        $('rec-clv').textContent = s.beat_close_pct + '%';
+        $('rec-clv-note').textContent = `${s.beat_close} of ${s.graded} gaps, average ${s.avg_clv_pct > 0 ? '+' : ''}${s.avg_clv_pct}%`;
+      } else {
+        $('rec-clv').textContent = '—';
+        $('rec-clv-note').textContent = s.graded ? `${s.graded} of ${s.min_sample} graded so far` : `shown after ${s.min_sample} graded gaps`;
+      }
+      $('rec-chain').textContent = chain.valid ? (s.flagged ? 'Verified' : 'Ready') : 'Broken';
+      $('rec-chain').style.color = chain.valid ? '' : 'var(--bad)';
+      $('rec-chain-note').textContent = chain.valid ? (chain.head ? `${chain.checked} entries, fingerprint ${chain.head}` : 'each entry locks the one before') : `chain breaks at entry ${chain.broken_at_seq}`;
+      const rows = (recent.gaps || []);
+      if (rows.length) {
+        const label = g => g.status === 'scored' ? (g.beat_close ? `<span class="pill pos">Beat the close ${g.clv_pct > 0 ? '+' : ''}${g.clv_pct}%</span>` : `<span class="pill neg">Missed ${g.clv_pct}%</span>`)
+          : g.status === 'no_close' ? '<span class="pill flat">No clean closing price</span>' : '<span class="pill flat">Waiting for the game</span>';
+        const odds = n => (n > 0 ? '+' : '') + n;
+        $('rec-list').style.display = 'block';
+        $('rec-list').innerHTML = rows.map(g => `<div class="slip-leg" style="grid-template-columns: minmax(0, 1fr) auto;"><div>${esc(g.selection)} at ${esc(g.book)} <span class="mono">${odds(g.price)}</span><span>${esc(g.game)} · ${esc(g.league || '')} · saved ${esc(new Date(g.flagged_at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }))} · ${esc(g.fingerprint)}</span></div>${label(g)}</div>`).join('');
+      }
+      $('rec-note').textContent = s.flagged ? s.note : 'The record has just started. Every price gap will appear here the moment it is saved, before the game.';
+    } catch (e) {}
+  }
+
+
+  // Motion: scroll reveal, count-up, demo. Everything works without it.
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function countUp(el, to) {
+    if (reduceMotion || !('requestAnimationFrame' in window) || to < 2) { el.textContent = String(to); return; }
+    const t0 = performance.now(), dur = 900;
+    const tick = (t) => {
+      const p = Math.min(1, (t - t0) / dur);
+      el.textContent = String(Math.round(to * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+  function setNumbers(games) {
+    const leagues = new Set(games.map((m) => m.league));
+    const books = games.reduce((mx, m) => Math.max(mx, m.books_compared || 0), 0);
+    countUp($('n-games'), games.length);
+    countUp($('n-books'), books);
+    countUp($('n-leagues'), leagues.size);
+  }
+  function setupReveal() {
+    const sel = '.section-head, .step, .feature, .plan, .promise, .stat, .sport, .panel, .board, .demo, .faq details, .cta-box';
+    const els = Array.from(document.querySelectorAll(sel));
+    if (!('IntersectionObserver' in window) || reduceMotion) return;
+    document.documentElement.classList.add('js');
+    els.forEach((el) => {
+      const sibs = el.parentElement ? Array.from(el.parentElement.children).filter((c) => c.matches(sel)) : [el];
+      el.style.setProperty('--d', (Math.min(sibs.indexOf(el), 5) * 0.07).toFixed(2) + 's');
+      el.classList.add('reveal');
+    });
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    els.forEach((el) => io.observe(el));
+  }
+  function setupDemo() {
+    const range = $('demo-range');
+    if (!range) return;
+    const pFair = 100 / (393 + 100);
+    const update = () => {
+      const o = Number(range.value);
+      const dec = 1 + o / 100;
+      const ev = (pFair * dec - 1) * 100;
+      $('demo-price').textContent = '+' + o;
+      $('demo-gap').textContent = (ev > 0 ? '+' : '') + ev.toFixed(1) + '%';
+      $('demo-gap').style.color = ev >= 1 ? 'var(--pos)' : ev < 0 ? 'var(--bad)' : 'var(--ink)';
+      const note = $('demo-note');
+      note.className = 'demo-note ' + (ev >= 1 ? 'good' : ev < 0 ? 'bad' : '');
+      note.textContent = ev >= 1 ? 'This book pays more than the bet is worth.'
+        : ev < 0 ? 'This book pays less than the bet is worth. Skip it.'
+        : 'About a fair price. Nothing to gain either way.';
+    };
+    range.addEventListener('input', update);
+    update();
+  }
+  setupReveal();
+  setupDemo();
+
+  loadGames();
+  loadRecord();
+})();
+
+  // Authentication & Supabase DB sync
+  let currentLandingAuthTab = 'login';
+  let landingActiveUser = null;
+
+  async function checkLandingAuth() {
+    try {
+      const resp = await fetch('/api/auth/me');
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data && data.user && !data.user.is_guest) {
+          landingActiveUser = data.user;
+          updateLandingNavAuth(data.user);
+        }
+      }
+    } catch(e) {}
+  }
+
+  function updateLandingNavAuth(user) {
+    const navCta = document.getElementById('landing-nav-cta');
+    if (!navCta) return;
+    if (user && !user.is_guest) {
+      navCta.innerHTML = `
+        <button type="button" class="btn btn-ghost btn-sm" onclick="openLandingAuth('account')">
+          <span class="dot" style="margin-right:6px;" aria-hidden="true"></span>${user.display_name || user.email}
+        </button>
+        <a class="btn btn-primary btn-sm" href="#">Go to App &rarr;</a>
+      `;
+    } else {
+      navCta.innerHTML = `
+        <button type="button" class="btn btn-ghost btn-sm" onclick="openLandingAuth('login')">Sign In</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="openLandingAuth('register')">Sign Up Free</button>
+      `;
+    }
+  }
+
+  function openLandingAuth(tab) {
+    const modal = document.getElementById('landing-auth-modal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+
+    if (tab === 'account' && landingActiveUser && !landingActiveUser.is_guest) {
+      document.getElementById('landing-logged-in-view').style.display = 'block';
+      document.getElementById('landing-auth-form-view').style.display = 'none';
+      document.getElementById('landing-auth-title').innerText = 'Your Account';
+      document.getElementById('landing-auth-user-display').innerText = landingActiveUser.display_name || 'Sharp Bettor';
+      document.getElementById('landing-auth-user-email').innerText = landingActiveUser.email || '';
+      document.getElementById('landing-auth-user-tier').innerText = (landingActiveUser.tier || 'free').toUpperCase() + ' PLAN';
+    } else {
+      document.getElementById('landing-logged-in-view').style.display = 'none';
+      document.getElementById('landing-auth-form-view').style.display = 'block';
+      switchLandingAuthTab(tab || 'login');
+    }
+  }
+
+  function closeLandingAuth() {
+    const modal = document.getElementById('landing-auth-modal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  function toggleLandingPasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const isPw = input.type === 'password';
+    input.type = isPw ? 'text' : 'password';
+    btn.innerHTML = isPw
+      ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+      : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  }
+
+  function switchLandingAuthTab(tab) {
+    currentLandingAuthTab = tab;
+    const ageField = document.getElementById('landing-age-field');
+    if (ageField) ageField.style.display = tab === 'register' ? 'flex' : 'none';
+    const title = document.getElementById('landing-auth-title');
+    const tabs = document.getElementById('landing-auth-tabs');
+    const tabLogin = document.getElementById('landing-tab-login');
+    const tabReg = document.getElementById('landing-tab-register');
+    const nameField = document.getElementById('landing-name-field');
+    const emailField = document.getElementById('landing-email-field');
+    const pwField = document.getElementById('landing-password-field');
+    const confirmPwField = document.getElementById('landing-confirm-password-field');
+    const forgotHelp = document.getElementById('landing-forgot-help');
+    const resetBanner = document.getElementById('landing-reset-banner');
+    const resetTokenField = document.getElementById('landing-reset-token-field');
+    const newPwField = document.getElementById('landing-new-password-field');
+    const resetConfirmPwField = document.getElementById('landing-reset-confirm-password-field');
+    const submitBtn = document.getElementById('landing-auth-submit-btn');
+    const backToLogin = document.getElementById('landing-back-to-login');
+    const msgBox = document.getElementById('landing-auth-msg');
+    if (msgBox) msgBox.style.display = 'none';
+
+    // Verify elements
+    const verifyHelp = document.getElementById('landing-verify-help'); if (verifyHelp) verifyHelp.style.display = 'none';
+    const verifyCodeField = document.getElementById('landing-verify-code-field'); if (verifyCodeField) verifyCodeField.style.display = 'none';
+    const verifyResendBox = document.getElementById('landing-verify-resend-box'); if (verifyResendBox) verifyResendBox.style.display = 'none';
+    const verifySkipBox = document.getElementById('landing-verify-skip-box'); if (verifySkipBox) verifySkipBox.style.display = 'none';
+
+    if (tab === 'register') {
+      title.innerText = 'Create Free Account';
+      tabs.style.display = 'flex';
+      tabLogin.className = 'btn btn-ghost btn-sm';
+      tabReg.className = 'btn btn-primary btn-sm';
+      nameField.style.display = 'block';
+      emailField.style.display = 'block';
+      pwField.style.display = 'block';
+      confirmPwField.style.display = 'block';
+      forgotHelp.style.display = 'none';
+      resetBanner.style.display = 'none';
+      resetTokenField.style.display = 'none';
+      newPwField.style.display = 'none';
+      resetConfirmPwField.style.display = 'none';
+      backToLogin.style.display = 'none';
+      submitBtn.innerText = 'Create Free Account →';
+    } else if (tab === 'verify') {
+      currentLandingAuthTab = 'verify';
+      title.innerText = 'Confirm Your Email';
+      tabs.style.display = 'none';
+      nameField.style.display = 'none';
+      emailField.style.display = 'none';
+      pwField.style.display = 'none';
+      confirmPwField.style.display = 'none';
+      forgotHelp.style.display = 'none';
+      resetBanner.style.display = 'none';
+      resetTokenField.style.display = 'none';
+      newPwField.style.display = 'none';
+      resetConfirmPwField.style.display = 'none';
+      if (verifyHelp) verifyHelp.style.display = 'block';
+      if (verifyCodeField) verifyCodeField.style.display = 'block';
+      if (verifyResendBox) verifyResendBox.style.display = 'block';
+      if (verifySkipBox) verifySkipBox.style.display = 'block';
+      backToLogin.style.display = 'block';
+      submitBtn.innerText = 'Confirm Code & Enter VetoBet →';
+    } else if (tab === 'forgot') {
+      title.innerText = 'Recover Account';
+      tabs.style.display = 'none';
+      nameField.style.display = 'none';
+      emailField.style.display = 'block';
+      pwField.style.display = 'none';
+      confirmPwField.style.display = 'none';
+      forgotHelp.style.display = 'block';
+      resetBanner.style.display = 'none';
+      resetTokenField.style.display = 'none';
+      newPwField.style.display = 'none';
+      resetConfirmPwField.style.display = 'none';
+      backToLogin.style.display = 'block';
+      submitBtn.innerText = 'Send Recovery Code →';
+    } else if (tab === 'reset') {
+      title.innerText = 'Set New Password';
+      tabs.style.display = 'none';
+      nameField.style.display = 'none';
+      emailField.style.display = 'none';
+      pwField.style.display = 'none';
+      confirmPwField.style.display = 'none';
+      forgotHelp.style.display = 'block';
+      resetTokenField.style.display = 'block';
+      newPwField.style.display = 'block';
+      resetConfirmPwField.style.display = 'block';
+      backToLogin.style.display = 'block';
+      submitBtn.innerText = 'Save Password & Sign In →';
+    } else {
+      // login
+      currentLandingAuthTab = 'login';
+      title.innerText = 'Sign In to VetoBet';
+      tabs.style.display = 'flex';
+      tabLogin.className = 'btn btn-primary btn-sm';
+      tabReg.className = 'btn btn-ghost btn-sm';
+      nameField.style.display = 'none';
+      emailField.style.display = 'block';
+      pwField.style.display = 'block';
+      confirmPwField.style.display = 'none';
+      forgotHelp.style.display = 'none';
+      resetBanner.style.display = 'none';
+      resetTokenField.style.display = 'none';
+      newPwField.style.display = 'none';
+      resetConfirmPwField.style.display = 'none';
+      backToLogin.style.display = 'none';
+      submitBtn.innerText = 'Sign In to VetoBet →';
+    }
+  }
+
+  async function submitLandingAuthForm() {
+    const email = (document.getElementById('landing-email-input')?.value || '').trim();
+    const password = (document.getElementById('landing-password-input')?.value || '').trim();
+    const confirmPassword = (document.getElementById('landing-confirm-password-input')?.value || '').trim();
+    const displayName = (document.getElementById('landing-name-input')?.value || '').trim();
+    const resetToken = (document.getElementById('landing-reset-token-input')?.value || '').trim();
+    const newPassword = (document.getElementById('landing-new-password-input')?.value || '').trim();
+    const resetConfirmPassword = (document.getElementById('landing-reset-confirm-password-input')?.value || '').trim();
+    const msgBox = document.getElementById('landing-auth-msg');
+    msgBox.style.display = 'none';
+
+    function showMsg(text, isError = true) {
+      msgBox.innerText = text;
+      msgBox.style.display = 'block';
+      msgBox.style.background = isError ? 'var(--bad-soft)' : 'var(--pos-soft)';
+      msgBox.style.color = isError ? 'var(--bad)' : 'var(--pos)';
+    }
+
+    try {
+      if (currentLandingAuthTab === 'forgot') {
+        if (!email) {
+          showMsg('Please enter your account email address.');
+          return;
+        }
+        const resp = await fetch('/api/auth/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.detail || 'Could not process recovery');
+
+        // The code goes to the inbox only. The reply is the same whether or not the email has an account.
+        window.landingResetEmail = email;
+        switchLandingAuthTab('reset');
+        const help = document.getElementById('landing-forgot-help');
+        if (help) { help.style.display = 'block'; help.textContent = 'If ' + email + ' has an account, we sent a 6-digit code. Check your inbox and spam folder, then enter it below. It works for 15 minutes.'; }
+        if (data.dev_code) {  // only on a developer machine with VETOBET_DEV_RESET_CODES=1
+          const banner = document.getElementById('landing-reset-banner');
+          const tokDisp = document.getElementById('landing-reset-token-display');
+          if (banner) banner.style.display = 'block';
+          if (tokDisp) tokDisp.innerText = data.dev_code;
+        }
+        return;
+      }
+
+      if (currentLandingAuthTab === 'reset') {
+        if (!resetToken || !newPassword) {
+          showMsg('Please provide your 6-digit recovery code and new password.');
+          return;
+        }
+        if (newPassword.length < 8) {
+          showMsg('New password must be at least 8 characters long.');
+          return;
+        }
+        if (resetConfirmPassword && resetConfirmPassword !== newPassword) {
+          showMsg('New passwords do not match. Please re-enter.');
+          return;
+        }
+        const resp = await fetch('/api/auth/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: window.landingResetEmail || email, token: resetToken, new_password: newPassword, confirm_password: resetConfirmPassword })
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.detail || 'Password reset failed');
+
+        showMsg('Password updated! Entering VetoBet...', false);
+        setTimeout(() => { window.location.href = '/app'; }, 1000);
+        return;
+      }
+
+      if (currentLandingAuthTab === 'verify') {
+        const verifyCode = (document.getElementById('landing-verify-code-input')?.value || '').trim();
+        if (!verifyCode || verifyCode.length < 6) {
+          showMsg('Please enter the 6-digit verification code sent to your email.');
+          return;
+        }
+        const resp = await fetch('/api/auth/verify-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: window.landingVerifyEmail || email, code: verifyCode })
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.detail || 'Email verification failed');
+
+        showMsg('Email verified! Entering VetoBet...', false);
+        setTimeout(() => { window.location.href = '/app'; }, 800);
+        return;
+      }
+
+      // Login or register
+      if (!email || !password) {
+        showMsg('Please enter both email and password.');
+        return;
+      }
+
+      if (currentLandingAuthTab === 'register') {
+        if (!document.getElementById('landing-age-input').checked) {
+          showMsg('Please confirm you are 21 or older and agree to the Terms and Privacy Policy.');
+          return;
+        }
+        if (password.length < 8) {
+          showMsg('Password must be at least 8 characters long.');
+          return;
+        }
+        if (confirmPassword && confirmPassword !== password) {
+          showMsg('Passwords do not match. Please re-enter.');
+          return;
+        }
+      }
+
+      const endpoint = currentLandingAuthTab === 'register' ? '/api/auth/register' : '/api/auth/login';
+      const payload = currentLandingAuthTab === 'register' 
+        ? { email, password, confirm_password: confirmPassword, display_name: displayName, confirm_age: true } 
+        : { email, password };
+
+      const resp = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data.detail || 'Authentication failed');
+      }
+
+      if (currentLandingAuthTab === 'register') {
+        window.landingVerifyEmail = email;
+        const disp = document.getElementById('landing-verify-email-display');
+        if (disp) disp.textContent = email;
+        switchLandingAuthTab('verify');
+        if (data.email_sent === false) {
+          showMsg('Account created, but we could not send the email. Tap "Didn\'t receive it?" to try again.', true);
+        } else {
+          showMsg('Account created! A 6-digit confirmation code was sent to ' + email, false);
+        }
+        if (data.dev_code) {
+          const banner = document.getElementById('landing-reset-banner');
+          const tokDisp = document.getElementById('landing-reset-token-display');
+          if (banner) banner.style.display = 'block';
+          if (tokDisp) tokDisp.innerText = data.dev_code;
+        }
+        return;
+      }
+
+      showMsg('Signed in! Entering VetoBet...', false);
+      setTimeout(() => { window.location.href = '/app'; }, 800);
+    } catch(e) {
+      showMsg(e.message, true);
+    }
+  }
+
+  async function resendLandingVerificationCode() {
+    const statusBox = document.getElementById('landing-verify-resend-status');
+    const link = document.getElementById('landing-verify-resend-link');
+    try {
+      const email = window.landingVerifyEmail || (document.getElementById('landing-email-input')?.value || '').trim();
+      if (!email) throw new Error('No email found to resend verification code.');
+
+      if (link) { link.innerText = 'Sending fresh code...'; link.style.pointerEvents = 'none'; link.style.opacity = '0.6'; }
+      if (statusBox) statusBox.style.display = 'none';
+
+      const resp = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await resp.json();
+
+      if (link) { link.innerText = "Didn't receive code? Resend email"; link.style.pointerEvents = 'auto'; link.style.opacity = '1'; }
+
+      if (data.email_sent === false || data.success === false) {
+        const errMsg = data.error || data.detail || data.message || 'Email delivery failed.';
+        if (statusBox) {
+          statusBox.innerText = '⚠️ ' + errMsg;
+          statusBox.style.display = 'block';
+          statusBox.style.background = 'var(--bad-soft)';
+          statusBox.style.color = 'var(--bad)';
+          statusBox.style.border = '1px solid var(--bad)';
+        }
+        return;
+      }
+
+      if (statusBox) {
+        statusBox.innerText = '✓ Fresh 6-digit code sent to ' + email + '. Check your spam folder if it doesn’t arrive in 60s.';
+        statusBox.style.display = 'block';
+        statusBox.style.background = 'var(--pos-soft)';
+        statusBox.style.color = 'var(--pos)';
+        statusBox.style.border = '1px solid var(--pos)';
+      }
+
+      if (data.dev_code) {
+        const banner = document.getElementById('landing-reset-banner');
+        const tokDisp = document.getElementById('landing-reset-token-display');
+        if (banner) banner.style.display = 'block';
+        if (tokDisp) tokDisp.innerText = data.dev_code;
+      }
+    } catch(e) {
+      if (link) { link.innerText = "Didn't receive code? Resend email"; link.style.pointerEvents = 'auto'; link.style.opacity = '1'; }
+      if (statusBox) {
+        statusBox.innerText = '⚠️ ' + e.message;
+        statusBox.style.display = 'block';
+        statusBox.style.background = 'var(--bad-soft)';
+        statusBox.style.color = 'var(--bad)';
+      }
+    }
+  }
+
+  async function handleLandingLogout() {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      landingActiveUser = null;
+      updateLandingNavAuth(null);
+      closeLandingAuth();
+    } catch(e) {}
+  }
+
+  // Check auth status on load
+  checkLandingAuth();
+
+</script>
+
+<!-- Landing Auth Modal (Supabase DB Backed) -->
+<div id="landing-auth-modal" style="display: none; position: fixed; inset: 0; width: 100%; height: 100%; background: rgba(5,8,14,0.85); z-index: 1000; backdrop-filter: blur(10px); align-items: center; justify-content: center; padding: 16px;">
+  <div style="background: var(--surface); border: 1px solid var(--line-bright); border-radius: 18px; max-width: 440px; width: 100%; padding: 28px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); position: relative; box-sizing: border-box;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span class="brand-mark" style="width: 26px; height: 26px; font-size: 13px;">V</span>
+        <h3 id="landing-auth-title" style="font-size: 18px; font-weight: 700; margin: 0; color: var(--ink);">Sign In to VetoBet</h3>
+      </div>
+      <button type="button" class="btn btn-ghost btn-sm" style="min-height: 32px; padding: 0 10px; font-size: 14px;" onclick="closeLandingAuth()">✕</button>
+    </div>
+
+    <!-- Logged in State View -->
+    <div id="landing-logged-in-view" style="display: none;">
+      <div style="background: var(--surface-2); padding: 16px; border-radius: 12px; border: 1px solid var(--line); margin-bottom: 18px;">
+        <div style="font-size: 11px; color: var(--muted); font-family: var(--mono); text-transform: uppercase;">Authenticated as</div>
+        <div id="landing-auth-user-display" style="font-size: 17px; font-weight: 700; color: var(--ink); margin-top: 4px;"></div>
+        <div id="landing-auth-user-email" style="font-size: 13px; color: var(--muted); margin-top: 2px;"></div>
+        <div style="margin-top: 10px;">
+          <span class="pill pos" id="landing-auth-user-tier">PRO PLAN</span>
+        </div>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <a class="btn btn-primary" style="flex: 1; text-align: center;" href="#">Go to App Dashboard &rarr;</a>
+        <button type="button" class="btn btn-ghost" style="color: var(--bad);" onclick="handleLandingLogout()">Sign Out</button>
+      </div>
+    </div>
+
+    <!-- Auth Forms (Sign In / Register / Forgot / Reset) -->
+    <div id="landing-auth-form-view">
+      <div id="landing-auth-tabs" style="display: flex; gap: 8px; margin-bottom: 18px; border-bottom: 1px solid var(--line); padding-bottom: 8px;">
+        <button type="button" id="landing-tab-login" class="btn btn-primary btn-sm" style="flex: 1;" onclick="switchLandingAuthTab('login')">Sign In</button>
+        <button type="button" id="landing-tab-register" class="btn btn-ghost btn-sm" style="flex: 1;" onclick="switchLandingAuthTab('register')">Register Free</button>
+      </div>
+
+      <div id="landing-name-field" style="display: none; margin-bottom: 14px;">
+        <label style="display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px;">Display Name</label>
+        <input type="text" id="landing-name-input" placeholder="e.g. Apex Sharp" style="width: 100%; height: 42px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: var(--ink); padding: 0 12px; font-size: 14px; box-sizing: border-box;">
+      </div>
+
+      <div id="landing-email-field" style="margin-bottom: 14px;">
+        <label style="display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px;">Email Address</label>
+        <input type="email" id="landing-email-input" placeholder="you@domain.com" style="width: 100%; height: 42px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: var(--ink); padding: 0 12px; font-size: 14px; box-sizing: border-box;">
+      </div>
+
+      <div id="landing-password-field" style="margin-bottom: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <label style="font-size: 12px; font-weight: 600; color: var(--muted);">Password</label>
+          <a href="javascript:void(0)" id="landing-forgot-link" onclick="switchLandingAuthTab('forgot')" style="font-size: 12px; color: var(--accent); text-decoration: none;">Forgot password?</a>
+        </div>
+        <div style="position: relative; display: flex; align-items: center;">
+          <input type="password" id="landing-password-input" placeholder="••••••••" style="width: 100%; height: 42px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: var(--ink); padding: 0 40px 0 12px; font-size: 14px; box-sizing: border-box;">
+          <button type="button" onclick="toggleLandingPasswordVisibility('landing-password-input', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: var(--muted); padding: 4px; display: flex; align-items: center;" aria-label="Toggle password visibility">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="landing-confirm-password-field" style="display: none; margin-bottom: 14px;">
+        <label style="display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px;">Confirm Password</label>
+        <div style="position: relative; display: flex; align-items: center;">
+          <input type="password" id="landing-confirm-password-input" placeholder="••••••••" style="width: 100%; height: 42px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: var(--ink); padding: 0 40px 0 12px; font-size: 14px; box-sizing: border-box;">
+          <button type="button" onclick="toggleLandingPasswordVisibility('landing-confirm-password-input', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: var(--muted); padding: 4px; display: flex; align-items: center;" aria-label="Toggle password visibility">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <label id="landing-age-field" style="display: none; align-items: flex-start; gap: 8px; margin-bottom: 16px; font-size: 13px; color: var(--muted); line-height: 1.5; cursor: pointer;">
+        <input type="checkbox" id="landing-age-input" style="margin-top: 4px; flex: none;">
+        <span>I am 21 or older and I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span>
+      </label>
+
+      <!-- Email Confirmation Views (6-Digit Signup OTP) -->
+      <div id="landing-verify-help" style="display: none; font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.5;">
+        We sent a 6-digit confirmation code to <strong id="landing-verify-email-display" style="color: var(--ink);"></strong>. Check your inbox and spam folder, then enter it below to confirm your account.
+      </div>
+
+      <div id="landing-verify-code-field" style="display: none; margin-bottom: 14px;">
+        <label style="display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px;">6-Digit Verification Code</label>
+        <input type="text" id="landing-verify-code-input" maxlength="6" placeholder="123456" style="width: 100%; height: 44px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: var(--ink); padding: 0 12px; font-size: 18px; font-family: var(--mono); letter-spacing: 4px; text-align: center; box-sizing: border-box;">
+      </div>
+
+      <div id="landing-verify-resend-box" style="display: none; text-align: center; margin-bottom: 12px;">
+        <a href="javascript:void(0)" id="landing-verify-resend-link" onclick="resendLandingVerificationCode()" style="font-size: 12px; color: var(--accent); text-decoration: underline;">Didn't receive code? Resend email</a>
+        <div id="landing-verify-resend-status" style="display: none; font-size: 12px; margin-top: 8px; padding: 8px 12px; border-radius: 8px; line-height: 1.4; text-align: left;"></div>
+      </div>
+
+      <div id="landing-verify-skip-box" style="display: none; text-align: center; margin-bottom: 14px;">
+        <a href="#" style="font-size: 12px; color: var(--muted); text-decoration: none;">Verify later & continue to app &rarr;</a>
+      </div>
+
+      <!-- Password recovery views (6-Digit OTP) -->
+      <div id="landing-forgot-help" style="display: none; font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.5;">
+        Enter the email you signed up with. We will email you a 6-digit code that works for 15 minutes.
+      </div>
+
+      <div id="landing-reset-banner" style="display: none; background: var(--pos-soft); border: 1px solid var(--pos); border-radius: 12px; padding: 14px; margin-bottom: 16px; text-align: center;">
+        <div style="font-weight: 700; font-size: 13px; color: var(--pos);">Developer mode: your code</div>
+        <div id="landing-reset-token-display" style="font-family: var(--mono); font-size: 24px; font-weight: 800; letter-spacing: 6px; background: rgba(0,0,0,0.25); padding: 8px 12px; border-radius: 8px; user-select: all; margin: 8px auto 6px; color: var(--ink); max-width: 220px;"></div>
+        <div style="font-size: 12px; color: var(--muted);">Valid for 15 minutes. Enter your new password below.</div>
+      </div>
+
+      <div id="landing-reset-token-field" style="display: none; margin-bottom: 14px;">
+        <label style="display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px;">6-Digit Recovery Code</label>
+        <input type="text" id="landing-reset-token-input" maxlength="6" placeholder="123456" style="width: 100%; height: 42px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: var(--ink); padding: 0 12px; font-size: 15px; font-family: var(--mono); letter-spacing: 2px; box-sizing: border-box;">
+      </div>
+
+      <div id="landing-new-password-field" style="display: none; margin-bottom: 14px;">
+        <label style="display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px;">New Password (min. 8 characters)</label>
+        <div style="position: relative; display: flex; align-items: center;">
+          <input type="password" id="landing-new-password-input" placeholder="••••••••" style="width: 100%; height: 42px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: var(--ink); padding: 0 40px 0 12px; font-size: 14px; box-sizing: border-box;">
+          <button type="button" onclick="toggleLandingPasswordVisibility('landing-new-password-input', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: var(--muted); padding: 4px; display: flex; align-items: center;" aria-label="Toggle password visibility">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="landing-reset-confirm-password-field" style="display: none; margin-bottom: 18px;">
+        <label style="display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px;">Confirm New Password</label>
+        <div style="position: relative; display: flex; align-items: center;">
+          <input type="password" id="landing-reset-confirm-password-input" placeholder="••••••••" style="width: 100%; height: 42px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: var(--ink); padding: 0 40px 0 12px; font-size: 14px; box-sizing: border-box;">
+          <button type="button" onclick="toggleLandingPasswordVisibility('landing-reset-confirm-password-input', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: var(--muted); padding: 4px; display: flex; align-items: center;" aria-label="Toggle password visibility">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <button type="button" id="landing-auth-submit-btn" class="btn btn-primary" style="width: 100%; height: 44px; font-weight: 600;" onclick="submitLandingAuthForm()">Sign In to VetoBet &rarr;</button>
+
+      <div id="landing-back-to-login" style="display: none; text-align: center; margin-top: 14px;">
+        <a href="javascript:void(0)" onclick="switchLandingAuthTab('login')" style="font-size: 13px; color: var(--muted); text-decoration: underline;">&larr; Back to Sign In</a>
+      </div>
+
+      <div id="landing-auth-msg" style="display: none; margin-top: 14px; font-size: 13px; padding: 10px; border-radius: 8px;"></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
